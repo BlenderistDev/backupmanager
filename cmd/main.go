@@ -18,11 +18,11 @@ const (
 )
 
 func main() {
-	source := os.Getenv("SOURCE_DIR")
-	storageDir := os.Getenv("SOURCE_DIR")
+	sourceDir := os.Getenv("SOURCE_DIR")
+	storageDir := os.Getenv("STORAGE_DIR")
 
 	replacer := replace.Replacer{
-		SourceDir:  source,
+		SourceDir:  sourceDir,
 		StorageDir: storageDir,
 		DaysKeep:   daysKeep,
 	}
