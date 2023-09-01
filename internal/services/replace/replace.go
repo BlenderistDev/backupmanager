@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// Replacer struct for replacing old files to storage with date-separated directories
 type Replacer struct {
 	SourceDir  string
 	StorageDir string
@@ -18,6 +19,7 @@ type fileToReplace struct {
 	name string
 }
 
+// ReplaceOld replaces old files to date-separated directories
 func (r Replacer) ReplaceOld() error {
 	files, err := r.getFilesToReplace()
 	if err != nil {
