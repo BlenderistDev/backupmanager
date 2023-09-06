@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"testing"
+
+	"github.com/BlenderistDev/backupmanager/internal/command"
 )
 
 func TestDeleter_DeleteEmptyDirs(t *testing.T) {
@@ -48,11 +50,15 @@ func TestDeleter_DeleteEmptyDirs(t *testing.T) {
 		t.Error(err)
 	}
 
-	deleter := Deleter{
-		StorageDir: storageDir,
-	}
+	args := []string{"", "emptydir", "--storage", storageDir}
 
-	err = deleter.DeleteEmptyDirs()
+	os.Args = args
+
+	cmd, err := command.GetCommand()
+	if err != nil {
+		t.Error(err)
+	}
+	err = cmd.Execute()
 	if err != nil {
 		t.Error(err)
 	}

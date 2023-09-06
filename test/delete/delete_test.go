@@ -6,6 +6,8 @@ import (
 	"os"
 	"testing"
 	"time"
+
+	"github.com/BlenderistDev/backupmanager/internal/command"
 )
 
 func TestDeleter_DeleteOld(t *testing.T) {
@@ -56,12 +58,15 @@ func TestDeleter_DeleteOld(t *testing.T) {
 		t.Error(err)
 	}
 
-	replacer := Deleter{
-		StorageDir: storageDir,
-		DaysKeep:   7,
-	}
+	args := []string{"", "delete", "--storage", storageDir, "--storage-keep", "7"}
 
-	err = replacer.DeleteOld()
+	os.Args = args
+
+	cmd, err := command.GetCommand()
+	if err != nil {
+		t.Error(err)
+	}
+	err = cmd.Execute()
 	if err != nil {
 		t.Error(err)
 	}

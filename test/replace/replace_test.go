@@ -6,6 +6,8 @@ import (
 	"os"
 	"testing"
 	"time"
+
+	"github.com/BlenderistDev/backupmanager/internal/command"
 )
 
 func TestReplacer_ReplaceOld(t *testing.T) {
@@ -41,13 +43,15 @@ func TestReplacer_ReplaceOld(t *testing.T) {
 		t.Error(err)
 	}
 
-	replacer := Replacer{
-		SourceDir:  sourceDir,
-		StorageDir: storageDir,
-		DaysKeep:   7,
-	}
+	args := []string{"", "replace", "--source", sourceDir, "--storage", storageDir, "--source-keep", "7"}
 
-	err = replacer.ReplaceOld()
+	os.Args = args
+
+	cmd, err := command.GetCommand()
+	if err != nil {
+		t.Error(err)
+	}
+	err = cmd.Execute()
 	if err != nil {
 		t.Error(err)
 	}
