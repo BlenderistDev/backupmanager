@@ -1,5 +1,5 @@
 # backupmanager
-Tool for backup managing
+CLI tool for backup managing
 
 ## commands
 
