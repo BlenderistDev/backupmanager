@@ -53,12 +53,8 @@ func TestServe(t *testing.T) {
 
 	args := []string{"", "serve", "--source", tools.SourceDir, "--storage", tools.StorageDir, "--source-keep", "7", "--storage-keep", "14"}
 	os.Args = args
-	cmd, err := command.GetCommand()
-	if err != nil {
-		t.Error(err)
-	}
 	go func() {
-		err = cmd.Execute()
+		err = command.GetCommand().Execute()
 		if err != nil {
 			t.Error(err)
 		}

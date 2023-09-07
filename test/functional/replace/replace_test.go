@@ -33,12 +33,7 @@ func TestReplaceOld(t *testing.T) {
 	args := []string{"", "replace", "--source", tools.SourceDir, "--storage", tools.StorageDir, "--source-keep", "7"}
 
 	os.Args = args
-
-	cmd, err := command.GetCommand()
-	if err != nil {
-		t.Error(err)
-	}
-	err = cmd.Execute()
+	err := command.GetCommand().Execute()
 	if err != nil {
 		t.Error(err)
 	}

@@ -52,12 +52,7 @@ func TestDeleteEmptyDirs(t *testing.T) {
 	args := []string{"", "emptydir", "--storage", tools.StorageDir}
 
 	os.Args = args
-
-	cmd, err := command.GetCommand()
-	if err != nil {
-		t.Error(err)
-	}
-	err = cmd.Execute()
+	err = command.GetCommand().Execute()
 	if err != nil {
 		t.Error(err)
 	}
