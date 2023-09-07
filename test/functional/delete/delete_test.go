@@ -1,46 +1,62 @@
 package delete
 
 import (
-	"errors"
-	"fmt"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/BlenderistDev/backupmanager/internal/command"
+	"github.com/BlenderistDev/backupmanager/test/tools"
 )
 
-const storageDir = "test_replacer_storage_dir"
+const (
+	oldName         = "file_old"
+	newName         = "file_new"
+	oldSingleName   = "single"
+	oldSeveralName1 = "several1"
+	oldSeveralName2 = "several2"
+	oldSeveralName3 = "several3"
+)
 
-func TestDeleter_DeleteOld(t *testing.T) {
-
+func TestDelete(t *testing.T) {
 	defer func() {
-		_ = os.RemoveAll(storageDir)
+		_ = os.RemoveAll(tools.StorageDir)
 	}()
 
 	now := time.Now()
-
-	oldPathSingle, err := createStubFile(now.Add(-1*time.Hour*24*8), "%s/%d/%s/%s")
+	oldTime := now.Add(-1 * time.Hour * 24 * 8)
+	oldTimeSingle, err := time.Parse(time.DateOnly, "2023-07-20")
+	if err != nil {
+		t.Error(err)
+	}
+	oldTimeSeveral1, err := time.Parse(time.DateOnly, "2023-07-04")
+	if err != nil {
+		t.Error(err)
+	}
+	oldTimeSeveral2, err := time.Parse(time.DateOnly, "2023-07-05")
+	if err != nil {
+		t.Error(err)
+	}
+	oldTimeSeveral3, err := time.Parse(time.DateOnly, "2023-07-06")
 	if err != nil {
 		t.Error(err)
 	}
 
-	oldPathSeveral1, err := createStubFile(now.Add(-1*time.Hour*24*16), "%s/%d/%s/%s-1")
-	if err != nil {
-		t.Error(err)
-	}
+	newPath := tools.GetStoragePath(newName, now)
+	oldPath := tools.GetStoragePath(oldName, oldTime)
+	singlePath := tools.GetStoragePath(oldSingleName, oldTimeSingle)
+	severalPath1 := tools.GetStoragePath(oldSeveralName1, oldTimeSeveral1)
+	severalPath2 := tools.GetStoragePath(oldSeveralName2, oldTimeSeveral2)
+	severalPath3 := tools.GetStoragePath(oldSeveralName3, oldTimeSeveral3)
 
-	oldPathSeveral2, err := createStubFile(now.Add(-1*time.Hour*24*16), "%s/%d/%s/%s-2")
-	if err != nil {
-		t.Error(err)
-	}
+	tools.CreateStubFile(t, now, newPath)
+	tools.CreateStubFile(t, oldTime, oldPath)
+	tools.CreateStubFile(t, oldTimeSingle, singlePath)
+	tools.CreateStubFile(t, oldTimeSeveral1, severalPath1)
+	tools.CreateStubFile(t, oldTimeSeveral2, severalPath2)
+	tools.CreateStubFile(t, oldTimeSeveral3, severalPath3)
 
-	newPath, err := createStubFile(now, "%s/%d/%s/%s")
-	if err != nil {
-		t.Error(err)
-	}
-
-	args := []string{"", "delete", "--storage", storageDir, "--storage-keep", "7"}
+	args := []string{"", "delete", "--storage", tools.StorageDir, "--storage-keep", "7"}
 
 	os.Args = args
 
@@ -53,43 +69,10 @@ func TestDeleter_DeleteOld(t *testing.T) {
 		t.Error(err)
 	}
 
-	if _, err := os.Stat(newPath); err != nil {
-		t.Error(err)
-	}
+	tools.CheckFileExist(t, newPath)
+	tools.CheckFileExist(t, singlePath)
+	tools.CheckFileExist(t, severalPath1)
 
-	if _, err := os.Stat(oldPathSingle); err != nil {
-		t.Error(err)
-	}
-
-	if _, err := os.Stat(oldPathSeveral1); err != nil {
-		t.Error(err)
-	}
-
-	if _, err := os.Stat(oldPathSeveral2); !errors.Is(err, os.ErrNotExist) {
-		if err != nil {
-			t.Error(err)
-		} else {
-			t.Error("file " + oldPathSeveral2 + " have not been deleted")
-		}
-	}
-}
-
-func createStubFile(t time.Time, format string) (string, error) {
-	dir := fmt.Sprintf(format, storageDir, t.Year(), t.Month(), t.Format(time.DateOnly))
-	if err := os.MkdirAll(dir, os.ModePerm); err != nil {
-		return "", err
-	}
-
-	path := dir + "/file"
-	_, err := os.Create(path)
-	if err != nil {
-		return "", err
-	}
-
-	err = os.Chtimes(path, t, t)
-	if err != nil {
-		return "", err
-	}
-
-	return path, nil
+	tools.CheckFileNotExist(t, severalPath2)
+	tools.CheckFileNotExist(t, severalPath3)
 }

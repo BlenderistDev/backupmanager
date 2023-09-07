@@ -1,49 +1,36 @@
 package replace
 
 import (
-	"errors"
-	"fmt"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/BlenderistDev/backupmanager/internal/command"
+	"github.com/BlenderistDev/backupmanager/test/tools"
 )
 
-func TestReplacer_ReplaceOld(t *testing.T) {
-	const sourceDir = "test_replacer_source_dir"
-	const storageDir = "test_replacer_storage_dir"
-	const oldSourcePath = sourceDir + "/file_old"
-	const newSourcePath = sourceDir + "/file_new"
+const (
+	oldName = "/file_old"
+	newName = "/file_new"
+)
 
+func TestReplaceOld(t *testing.T) {
 	defer func() {
-		_ = os.RemoveAll(sourceDir)
-		_ = os.RemoveAll(storageDir)
+		_ = os.RemoveAll(tools.SourceDir)
+		_ = os.RemoveAll(tools.StorageDir)
 	}()
 
 	now := time.Now()
 	oldTime := now.Add(-1 * time.Hour * 24 * 8)
-	oldResultPath := fmt.Sprintf("%s/%d/%s/%s", storageDir, oldTime.Year(), oldTime.Month(), oldTime.Format(time.DateOnly))
 
-	// prepare test directories and files
-	err := os.Mkdir(sourceDir, os.ModePerm)
-	if err != nil {
-		t.Error(err)
-	}
-	_, err = os.Create(oldSourcePath)
-	if err != nil {
-		t.Error(err)
-	}
-	_, err = os.Create(newSourcePath)
-	if err != nil {
-		t.Error(err)
-	}
-	err = os.Chtimes(oldSourcePath, oldTime, oldTime)
-	if err != nil {
-		t.Error(err)
-	}
+	newSourcePath := tools.GetSourcePath(newName)
+	oldSourcePath := tools.GetSourcePath(oldName)
+	oldStoragePath := tools.GetStoragePath(oldName, oldTime)
 
-	args := []string{"", "replace", "--source", sourceDir, "--storage", storageDir, "--source-keep", "7"}
+	tools.CreateStubFile(t, now, newSourcePath)
+	tools.CreateStubFile(t, oldTime, oldSourcePath)
+
+	args := []string{"", "replace", "--source", tools.SourceDir, "--storage", tools.StorageDir, "--source-keep", "7"}
 
 	os.Args = args
 
@@ -56,20 +43,7 @@ func TestReplacer_ReplaceOld(t *testing.T) {
 		t.Error(err)
 	}
 
-	// check old file is replaced, new is not replaced
-	if _, err := os.Stat(newSourcePath); err != nil {
-		t.Error(err)
-	}
-
-	if _, err := os.Stat(oldSourcePath); !errors.Is(err, os.ErrNotExist) {
-		if err != nil {
-			t.Error(err)
-		} else {
-			t.Error("file " + oldSourcePath + " have not been moved")
-		}
-	}
-
-	if _, err := os.Stat(oldResultPath); err != nil {
-		t.Error(err)
-	}
+	tools.CheckFileExist(t, newSourcePath)
+	tools.CheckFileNotExist(t, oldSourcePath)
+	tools.CheckFileExist(t, oldStoragePath)
 }

@@ -1,27 +1,26 @@
 package emptydir
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"testing"
 
 	"github.com/BlenderistDev/backupmanager/internal/command"
+	"github.com/BlenderistDev/backupmanager/test/tools"
 )
 
-func TestDeleter_DeleteEmptyDirs(t *testing.T) {
-	const storageDir = "test_replacer_storage_dir"
+func TestDeleteEmptyDirs(t *testing.T) {
 	defer func() {
-		_ = os.RemoveAll(storageDir)
+		_ = os.RemoveAll(tools.StorageDir)
 	}()
 
-	emptyDirPath := fmt.Sprintf("%s/%s", storageDir, "empty")
-	notEmptyDirPath := fmt.Sprintf("%s/%s", storageDir, "notEmpty")
+	emptyDirPath := fmt.Sprintf("%s/%s", tools.StorageDir, "empty")
+	notEmptyDirPath := fmt.Sprintf("%s/%s", tools.StorageDir, "notEmpty")
 
-	emptyOuterDirPath := fmt.Sprintf("%s/%s", storageDir, "empty_outer")
+	emptyOuterDirPath := fmt.Sprintf("%s/%s", tools.StorageDir, "empty_outer")
 	emptyInnerDirPath := fmt.Sprintf("%s/%s", emptyOuterDirPath, "empty_inner")
 
-	notEmptyOuterDirPath := fmt.Sprintf("%s/%s", storageDir, "not_empty_outer")
+	notEmptyOuterDirPath := fmt.Sprintf("%s/%s", tools.StorageDir, "not_empty_outer")
 	notEmptyInnerDirPath := fmt.Sprintf("%s/%s", notEmptyOuterDirPath, "not_empty_inner")
 
 	err := os.MkdirAll(emptyDirPath, os.ModePerm)
@@ -50,7 +49,7 @@ func TestDeleter_DeleteEmptyDirs(t *testing.T) {
 		t.Error(err)
 	}
 
-	args := []string{"", "emptydir", "--storage", storageDir}
+	args := []string{"", "emptydir", "--storage", tools.StorageDir}
 
 	os.Args = args
 
@@ -63,40 +62,11 @@ func TestDeleter_DeleteEmptyDirs(t *testing.T) {
 		t.Error(err)
 	}
 
-	if _, err := os.Stat(notEmptyDirPath); err != nil {
-		t.Error(err)
-	}
+	tools.CheckFileExist(t, notEmptyDirPath)
+	tools.CheckFileExist(t, notEmptyInnerDirPath)
+	tools.CheckFileExist(t, notEmptyOuterDirPath)
 
-	if _, err := os.Stat(notEmptyInnerDirPath); err != nil {
-		t.Error(err)
-	}
-
-	if _, err := os.Stat(notEmptyOuterDirPath); err != nil {
-		t.Error(err)
-	}
-
-	if _, err := os.Stat(emptyDirPath); !errors.Is(err, os.ErrNotExist) {
-		if err != nil {
-			t.Error(err)
-		} else {
-			t.Error("dir " + emptyDirPath + " have not been deleted")
-		}
-	}
-
-	if _, err := os.Stat(emptyOuterDirPath); !errors.Is(err, os.ErrNotExist) {
-		if err != nil {
-			t.Error(err)
-		} else {
-			t.Error("dir " + emptyOuterDirPath + " have not been deleted")
-		}
-	}
-
-	if _, err := os.Stat(emptyInnerDirPath); !errors.Is(err, os.ErrNotExist) {
-		if err != nil {
-			t.Error(err)
-		} else {
-			t.Error("dir " + emptyInnerDirPath + " have not been deleted")
-		}
-	}
-
+	tools.CheckFileNotExist(t, emptyDirPath)
+	tools.CheckFileNotExist(t, emptyOuterDirPath)
+	tools.CheckFileNotExist(t, emptyInnerDirPath)
 }

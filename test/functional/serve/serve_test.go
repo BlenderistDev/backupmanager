@@ -1,30 +1,28 @@
 package serve
 
 import (
-	"errors"
-	"fmt"
 	"os"
 	"syscall"
 	"testing"
 	"time"
 
 	"github.com/BlenderistDev/backupmanager/internal/command"
+	"github.com/BlenderistDev/backupmanager/test/tools"
 )
 
-const sourceDir = "test_replacer_source_dir"
-const storageDir = "test_replacer_storage_dir"
-const oldName = "file_old"
-const newName = "file_new"
-const oldSingleName = "single"
-const oldSeveralName1 = "several1"
-const oldSeveralName2 = "several2"
-const oldSeveralName3 = "several3"
+const (
+	oldName         = "file_old"
+	newName         = "file_new"
+	oldSingleName   = "single"
+	oldSeveralName1 = "several1"
+	oldSeveralName2 = "several2"
+	oldSeveralName3 = "several3"
+)
 
 func TestServe(t *testing.T) {
-
 	defer func() {
-		_ = os.RemoveAll(sourceDir)
-		_ = os.RemoveAll(storageDir)
+		_ = os.RemoveAll(tools.SourceDir)
+		_ = os.RemoveAll(tools.StorageDir)
 	}()
 
 	now := time.Now()
@@ -46,23 +44,15 @@ func TestServe(t *testing.T) {
 		t.Error(err)
 	}
 
-	// prepare test directories and files
-	err = os.Mkdir(sourceDir, os.ModePerm)
-	if err != nil {
-		t.Error(err)
-	}
+	tools.CreateStubFile(t, now, tools.GetSourcePath(newName))
+	tools.CreateStubFile(t, oldTime, tools.GetSourcePath(oldName))
+	tools.CreateStubFile(t, oldTimeSingle, tools.GetSourcePath(oldSingleName))
+	tools.CreateStubFile(t, oldTimeSeveral1, tools.GetSourcePath(oldSeveralName1))
+	tools.CreateStubFile(t, oldTimeSeveral2, tools.GetSourcePath(oldSeveralName2))
+	tools.CreateStubFile(t, oldTimeSeveral3, tools.GetSourcePath(oldSeveralName3))
 
-	createStubFile(t, now, newName)
-	createStubFile(t, oldTime, oldName)
-	createStubFile(t, oldTimeSingle, oldSingleName)
-	createStubFile(t, oldTimeSeveral1, oldSeveralName1)
-	createStubFile(t, oldTimeSeveral2, oldSeveralName2)
-	createStubFile(t, oldTimeSeveral3, oldSeveralName3)
-
-	args := []string{"", "serve", "--source", sourceDir, "--storage", storageDir, "--source-keep", "7", "--storage-keep", "14"}
-
+	args := []string{"", "serve", "--source", tools.SourceDir, "--storage", tools.StorageDir, "--source-keep", "7", "--storage-keep", "14"}
 	os.Args = args
-
 	cmd, err := command.GetCommand()
 	if err != nil {
 		t.Error(err)
@@ -76,54 +66,17 @@ func TestServe(t *testing.T) {
 	time.Sleep(time.Millisecond * 100)
 	_ = syscall.Kill(syscall.Getpid(), syscall.SIGTERM)
 
-	checkFileExist(t, getSourcePath(newName))
-	checkFileExist(t, getStoragePath(oldName, oldTime))
-	checkFileExist(t, getStoragePath(oldSingleName, oldTimeSingle))
-	checkFileExist(t, getStoragePath(oldSeveralName1, oldTimeSeveral1))
+	tools.CheckFileExist(t, tools.GetSourcePath(newName))
+	tools.CheckFileExist(t, tools.GetStoragePath(oldName, oldTime))
+	tools.CheckFileExist(t, tools.GetStoragePath(oldSingleName, oldTimeSingle))
+	tools.CheckFileExist(t, tools.GetStoragePath(oldSeveralName1, oldTimeSeveral1))
 
-	checkFileNotExist(t, getSourcePath(oldName))
-	checkFileNotExist(t, getSourcePath(oldSingleName))
-	checkFileNotExist(t, getSourcePath(oldSeveralName1))
-	checkFileNotExist(t, getSourcePath(oldSeveralName2))
-	checkFileNotExist(t, getSourcePath(oldSeveralName3))
+	tools.CheckFileNotExist(t, tools.GetSourcePath(oldName))
+	tools.CheckFileNotExist(t, tools.GetSourcePath(oldSingleName))
+	tools.CheckFileNotExist(t, tools.GetSourcePath(oldSeveralName1))
+	tools.CheckFileNotExist(t, tools.GetSourcePath(oldSeveralName2))
+	tools.CheckFileNotExist(t, tools.GetSourcePath(oldSeveralName3))
 
-	checkFileNotExist(t, getStoragePath(oldSeveralName2, oldTimeSeveral2))
-	checkFileNotExist(t, getStoragePath(oldSeveralName3, oldTimeSeveral3))
-}
-
-func getStoragePath(name string, oldTime time.Time) string {
-	return fmt.Sprintf("%s/%d/%s/%s/%s", storageDir, oldTime.Year(), oldTime.Month(), oldTime.Format(time.DateOnly), name)
-}
-
-func checkFileExist(t *testing.T, path string) {
-	if _, err := os.Stat(path); err != nil {
-		t.Error(err)
-	}
-}
-
-func checkFileNotExist(t *testing.T, path string) {
-	if _, err := os.Stat(path); !errors.Is(err, os.ErrNotExist) {
-		if err != nil {
-			t.Error(err)
-		} else {
-			t.Error("file " + path + " have not been moved")
-		}
-	}
-}
-
-func createStubFile(t *testing.T, time time.Time, name string) {
-	path := getSourcePath(name)
-	_, err := os.Create(path)
-	if err != nil {
-		t.Error(err)
-	}
-
-	err = os.Chtimes(path, time, time)
-	if err != nil {
-		t.Error(err)
-	}
-}
-
-func getSourcePath(name string) string {
-	return sourceDir + "/" + name
+	tools.CheckFileNotExist(t, tools.GetStoragePath(oldSeveralName2, oldTimeSeveral2))
+	tools.CheckFileNotExist(t, tools.GetStoragePath(oldSeveralName3, oldTimeSeveral3))
 }
