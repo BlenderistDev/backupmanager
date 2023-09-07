@@ -3,6 +3,7 @@ package delete
 import (
 	"fmt"
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
 	"time"
@@ -52,6 +53,7 @@ func (d Deleter) DeleteOld() error {
 			if err != nil {
 				return err
 			}
+			log.Println("file deleted", file)
 		}
 	}
 

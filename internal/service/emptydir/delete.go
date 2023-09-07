@@ -2,6 +2,7 @@ package emptydir
 
 import (
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
 )
@@ -24,6 +25,7 @@ func (d Deleter) DeleteEmptyDirs() error {
 			if err != nil {
 				return err
 			}
+			log.Println("dir deleted", dir)
 		}
 
 		err = d.DeleteEmptyDirs()
