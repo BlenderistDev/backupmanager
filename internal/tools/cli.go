@@ -2,11 +2,15 @@ package tools
 
 import "fmt"
 
+// Args struct for parsed cli args
 type Args struct {
 	Command string
 	Params  map[string]string
 }
 
+// ParseArgs parse cli args to Args
+// args[1] is command
+// other args are map[string]string
 func ParseArgs(args []string) (*Args, error) {
 	if len(args) < 2 {
 		return nil, fmt.Errorf("command not found")

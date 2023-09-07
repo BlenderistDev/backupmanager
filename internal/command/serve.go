@@ -16,6 +16,9 @@ type serve struct {
 	args map[string]string
 }
 
+// Execute serve cli command
+// Serves source and storage paths
+// with replace, delete and emptydir commands
 func (s serve) Execute() error {
 	sourceDir, err := parseDir(s.args, sourceParam)
 	if err != nil {

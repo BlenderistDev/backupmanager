@@ -8,6 +8,9 @@ type del struct {
 	args map[string]string
 }
 
+// Execute delete cli command
+// Deletes old files from directory
+// At least one backup will be left for each week
 func (d del) Execute() error {
 	storageDir, err := parseDir(d.args, storageParam)
 	if err != nil {

@@ -1,17 +1,14 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/BlenderistDev/backupmanager/internal/command"
 )
 
 func main() {
-	cmd, err := command.GetCommand()
+	err := command.GetCommand().Execute()
 	if err != nil {
-		panic(err)
-	}
-
-	err = cmd.Execute()
-	if err != nil {
-		panic(err)
+		fmt.Println(fmt.Sprintf("error: %v", err))
 	}
 }

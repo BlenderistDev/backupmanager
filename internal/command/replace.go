@@ -8,6 +8,8 @@ type replace struct {
 	args map[string]string
 }
 
+// Execute replace cli command
+// Replaces old backups from source dir to storage dir
 func (r replace) Execute() error {
 	sourceDir, err := parseDir(r.args, sourceParam)
 	if err != nil {
